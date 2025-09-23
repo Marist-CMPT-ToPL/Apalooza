@@ -9,10 +9,3 @@ let both_true = is_ready && is_complete
 let either_true = is_ready || is_complete
 let not_ready = !is_ready
 
-// This program showcases:
-// - String literals: "Hello, World!", "Apalooza", with escape sequences
-// - Escape characters: \n, \t, \\, \"
-// - Boolean literals: true, false
-// - Logical operators: &&, ||, !
-// - Identifiers: greeting, name, escaped_string, is_ready, is_complete, etc.
-// - Keywords: let, true, false

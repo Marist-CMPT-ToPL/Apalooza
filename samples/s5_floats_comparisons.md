@@ -18,10 +18,3 @@ let pi_greater_equal_e = pi >= e
 
 let classification = if temperature <= -10.0 then "Very Cold" else if temperature <= 0.0 then "Cold" else "Warm"
 
-// This program showcases:
-// - Float literals: 3.14159, 2.71828, -15.5, 0.0, 2.0
-// - Negative float numbers: -15.5
-// - All comparison operators: >, <, ==, !=, <=, >=
-// - Float arithmetic operations
-// - Complex conditional logic with float comparisons
-// - Descriptive identifiers for mathematical concepts

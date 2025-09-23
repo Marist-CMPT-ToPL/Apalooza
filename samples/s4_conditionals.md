@@ -13,10 +13,3 @@ let is_young = age < 30
 let status = if is_adult then "Adult" else "Minor"
 let grade = if current_score >= 90 then "A" else if current_score >= 80 then "B" else "C"
 
-// This program showcases:
-// - Comparison operators: >=, >, ==, !=, <
-// - Keywords: if, then, else
-// - Nested conditional expressions
-// - Boolean expressions using comparisons
-// - Identifiers with meaningful names
-// - Mixed integer and string operations
