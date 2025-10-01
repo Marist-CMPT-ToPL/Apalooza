@@ -116,7 +116,7 @@ class Interpreter implements Expr.Visitor<Object>,
         Object superclass = null;
         if (stmt.superclass != null) {
             superclass = evaluate(stmt.superclass);
-            if (!(superclass instanceof LoxClass)) {
+            if (!(superclass instanceof AppaClass)) {
                 throw new RuntimeError(stmt.superclass.name,
                         "Superclass must be a class.");
             }
@@ -133,13 +133,13 @@ class Interpreter implements Expr.Visitor<Object>,
 //< Inheritance begin-superclass-environment
 //> interpret-methods
 
-        Map<String, LoxFunction> methods = new HashMap<>();
+        Map<String, AppaFunction> methods = new HashMap<>();
         for (Stmt.Function method : stmt.methods) {
 /* Classes interpret-methods < Classes interpreter-method-initializer
       LoxFunction function = new LoxFunction(method, environment);
 */
 //> interpreter-method-initializer
-            LoxFunction function = new LoxFunction(method, environment,
+            AppaFunction function = new AppaFunction(method, environment,
                     method.name.lexeme.equals("init"));
 //< interpreter-method-initializer
             methods.put(method.name.lexeme, function);
@@ -149,8 +149,8 @@ class Interpreter implements Expr.Visitor<Object>,
     LoxClass klass = new LoxClass(stmt.name.lexeme, methods);
 */
 //> Inheritance interpreter-construct-class
-        LoxClass klass = new LoxClass(stmt.name.lexeme,
-                (LoxClass)superclass, methods);
+        AppaClass klass = new AppaClass(stmt.name.lexeme,
+                (AppaClass)superclass, methods);
 //> end-superclass-environment
 
         if (superclass != null) {
@@ -184,7 +184,7 @@ class Interpreter implements Expr.Visitor<Object>,
     LoxFunction function = new LoxFunction(stmt, environment);
 */
 //> Classes construct-function
-        LoxFunction function = new LoxFunction(stmt, environment,
+        AppaFunction function = new AppaFunction(stmt, environment,
                 false);
 //< Classes construct-function
         environment.define(stmt.name.lexeme, function);
@@ -343,13 +343,13 @@ class Interpreter implements Expr.Visitor<Object>,
         }
 
 //> check-is-callable
-        if (!(callee instanceof LoxCallable)) {
+        if (!(callee instanceof AppaCallable)) {
             throw new RuntimeError(expr.paren,
                     "Can only call functions and classes.");
         }
 
 //< check-is-callable
-        LoxCallable function = (LoxCallable)callee;
+        AppaCallable function = (AppaCallable) callee;
 //> check-arity
         if (arguments.size() != function.arity()) {
             throw new RuntimeError(expr.paren, "Expected " +
@@ -365,8 +365,8 @@ class Interpreter implements Expr.Visitor<Object>,
     @Override
     public Object visitGetExpr(Expr.Get expr) {
         Object object = evaluate(expr.object);
-        if (object instanceof LoxInstance) {
-            return ((LoxInstance) object).get(expr.name);
+        if (object instanceof AppaInstance) {
+            return ((AppaInstance) object).get(expr.name);
         }
 
         throw new RuntimeError(expr.name,
@@ -404,13 +404,13 @@ class Interpreter implements Expr.Visitor<Object>,
     public Object visitSetExpr(Expr.Set expr) {
         Object object = evaluate(expr.object);
 
-        if (!(object instanceof LoxInstance)) { // [order]
+        if (!(object instanceof AppaInstance)) { // [order]
             throw new RuntimeError(expr.name,
                     "Only instances have fields.");
         }
 
         Object value = evaluate(expr.value);
-        ((LoxInstance)object).set(expr.name, value);
+        ((AppaInstance)object).set(expr.name, value);
         return value;
     }
     //< Classes interpreter-visit-set
@@ -418,16 +418,16 @@ class Interpreter implements Expr.Visitor<Object>,
     @Override
     public Object visitSuperExpr(Expr.Super expr) {
         int distance = locals.get(expr);
-        LoxClass superclass = (LoxClass)environment.getAt(
+        AppaClass superclass = (AppaClass)environment.getAt(
                 distance, "super");
 //> super-find-this
 
-        LoxInstance object = (LoxInstance)environment.getAt(
+        AppaInstance object = (AppaInstance)environment.getAt(
                 distance - 1, "this");
 //< super-find-this
 //> super-find-method
 
-        LoxFunction method = superclass.findMethod(expr.method.lexeme);
+        AppaFunction method = superclass.findMethod(expr.method.lexeme);
 //> super-no-method
 
         if (method == null) {

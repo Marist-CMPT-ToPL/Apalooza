@@ -6,11 +6,11 @@ import java.util.Map;
 class LoxClass {
 */
 //> lox-class-callable
-class LoxClass implements AppaCallable {
+class AppaClass implements AppaCallable {
     //< lox-class-callable
     final String name;
     //> Inheritance lox-class-superclass-field
-    final LoxClass superclass;
+    final AppaClass superclass;
     //< Inheritance lox-class-superclass-field
 /* Classes lox-class < Classes lox-class-methods
 
@@ -19,14 +19,14 @@ class LoxClass implements AppaCallable {
   }
 */
 //> lox-class-methods
-    private final Map<String, LoxFunction> methods;
+    private final Map<String, AppaFunction> methods;
 
     /* Classes lox-class-methods < Inheritance lox-class-constructor
       LoxClass(String name, Map<String, LoxFunction> methods) {
     */
 //> Inheritance lox-class-constructor
-    LoxClass(String name, LoxClass superclass,
-             Map<String, LoxFunction> methods) {
+    AppaClass(String name, AppaClass superclass,
+              Map<String, AppaFunction> methods) {
         this.superclass = superclass;
 //< Inheritance lox-class-constructor
         this.name = name;
@@ -34,7 +34,7 @@ class LoxClass implements AppaCallable {
     }
     //< lox-class-methods
 //> lox-class-find-method
-    LoxFunction findMethod(String name) {
+    AppaFunction findMethod(String name) {
         if (methods.containsKey(name)) {
             return methods.get(name);
         }
@@ -57,9 +57,9 @@ class LoxClass implements AppaCallable {
     @Override
     public Object call(Interpreter interpreter,
                        List<Object> arguments) {
-        LoxInstance instance = new LoxInstance(this);
+        AppaInstance instance = new AppaInstance(this);
 //> lox-class-call-initializer
-        LoxFunction initializer = findMethod("init");
+        AppaFunction initializer = findMethod("init");
         if (initializer != null) {
             initializer.bind(instance).call(interpreter, arguments);
         }
@@ -74,7 +74,7 @@ class LoxClass implements AppaCallable {
     return 0;
 */
 //> lox-initializer-arity
-        LoxFunction initializer = findMethod("init");
+        AppaFunction initializer = findMethod("init");
         if (initializer == null) return 0;
         return initializer.arity();
 //< lox-initializer-arity

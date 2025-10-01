@@ -6,6 +6,8 @@ import java.util.List;
 
 public class Main {
 
+    private static final Interpreter interpreter = new Interpreter();
+
     //< Evaluating Expressions interpreter-instance
 //> had-error
     static boolean hadError = false;
@@ -46,8 +48,21 @@ public class Main {
 
         List<Stmt> statements = parser.parse();
 
-        for(Stmt statement : statements){
+        /*for(Stmt statement : statements){
             System.out.println(statement);
-        }
+        }*/
+
+        if (hadError) return;
+
+//< Parsing Expressions print-ast
+//> Resolving and Binding create-resolver
+        Resolver resolver = new Resolver(interpreter);
+        resolver.resolve(statements);
+
+        if (hadError) return;
+
+        interpreter.interpret(statements);
+
+        System.out.println();
     }
 }
