@@ -1,0 +1,4 @@
+// Test multi-parameter arrow function
+let add = (a, b) => a + b;
+print add;
+print add(3, 4);

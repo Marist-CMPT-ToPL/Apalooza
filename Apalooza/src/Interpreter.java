@@ -12,6 +12,7 @@ import java.util.List;
 //> Resolving and Binding import-map
 import java.util.Map;
 //< Resolving and Binding import-map
+import structures.AppaList;
 
 /* Evaluating Expressions interpreter-class < Statements and State interpreter
 class Interpreter implements Expr.Visitor<Object> {
@@ -25,7 +26,7 @@ class Interpreter implements Expr.Visitor<Object>,
 */
 //> Functions global-environment
     final Environment globals = new Environment();
-    private Environment environment = globals;
+    Environment environment = globals;
     //< Functions global-environment
 //> Resolving and Binding locals-field
     private final Map<Expr, Integer> locals = new HashMap<>();
@@ -73,7 +74,7 @@ class Interpreter implements Expr.Visitor<Object>,
     }
     //< Statements and State interpret
 //> evaluate
-    private Object evaluate(Expr expr) {
+    Object evaluate(Expr expr) {
         return expr.accept(this);
     }
     //< evaluate
@@ -488,6 +489,58 @@ class Interpreter implements Expr.Visitor<Object>,
     }
     //< Resolving and Binding look-up-variable
 //< Statements and State visit-variable
+//> visit-list
+    @Override
+    public Object visitListExpr(Expr.ListExpr expr) {
+        List<Object> elements = new ArrayList<>();
+        for (Expr element : expr.elements) {
+            elements.add(evaluate(element));
+        }
+        return new AppaList(elements);
+    }
+    //< visit-list
+//> visit-index-get
+    @Override
+    public Object visitIndexGetExpr(Expr.IndexGet expr) {
+        Object object = evaluate(expr.object);
+        Object index = evaluate(expr.index);
+
+        if (object instanceof AppaList) {
+            if (!(index instanceof Double)) {
+                throw new RuntimeError(null, "List index must be a number.");
+            }
+            int idx = ((Double) index).intValue();
+            return ((AppaList) object).get(idx);
+        }
+
+        throw new RuntimeError(null, "Only lists support indexing.");
+    }
+    //< visit-index-get
+//> visit-index-set
+    @Override
+    public Object visitIndexSetExpr(Expr.IndexSet expr) {
+        Object object = evaluate(expr.object);
+        Object index = evaluate(expr.index);
+        Object value = evaluate(expr.value);
+
+        if (object instanceof AppaList) {
+            if (!(index instanceof Double)) {
+                throw new RuntimeError(null, "List index must be a number.");
+            }
+            int idx = ((Double) index).intValue();
+            ((AppaList) object).set(idx, value);
+            return value;
+        }
+
+        throw new RuntimeError(null, "Only lists support index assignment.");
+    }
+    //< visit-index-set
+//> visit-arrow-function
+    @Override
+    public Object visitArrowFunctionExpr(Expr.ArrowFunction expr) {
+        return new AppaFunction(expr, environment);
+    }
+    //< visit-arrow-function
 //> check-operand
     private void checkNumberOperand(Token operator, Object operand) {
         if (operand instanceof Double) return;
@@ -527,6 +580,10 @@ class Interpreter implements Expr.Visitor<Object>,
                 text = text.substring(0, text.length() - 2);
             }
             return text;
+        }
+
+        if (object instanceof AppaList) {
+            return object.toString();
         }
 
         return object.toString();

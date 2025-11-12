@@ -1,0 +1,70 @@
+// Test List Data Structure and Arrow Functions
+
+// Test 1: Basic list creation
+print "=== Test 1: Basic List Creation ===";
+let list1 = [1, 2, 3, 4, 5];
+print list1;
+
+// Test 2: List with mixed types
+print "=== Test 2: Mixed Type List ===";
+let list2 = [1, "hello", 3, "world"];
+print list2;
+
+// Test 3: Empty list
+print "=== Test 3: Empty List ===";
+let list3 = [];
+print list3;
+
+// Test 4: List indexing (get)
+print "=== Test 4: List Indexing ===";
+let nums = [10, 20, 30, 40, 50];
+print nums[0];
+print nums[2];
+print nums[4];
+
+// Test 5: List indexing (set)
+print "=== Test 5: List Index Assignment ===";
+let arr = [1, 2, 3];
+print arr;
+arr[1] = 100;
+print arr;
+
+// Test 6: Arrow function with single parameter (expression body)
+print "=== Test 6: Arrow Function - Single Param ===";
+let double = (x) => x * 2;
+print double(5);
+print double(10);
+
+// Test 7: Arrow function with multiple parameters (expression body)
+print "=== Test 7: Arrow Function - Multiple Params ===";
+let add = (a, b) => a + b;
+print add(3, 4);
+print add(10, 20);
+
+// Test 8: Arrow function with block body
+print "=== Test 8: Arrow Function - Block Body ===";
+let multiply = (x, y) => {
+    let result = x * y;
+    return result;
+};
+print multiply(6, 7);
+
+// Test 9: Arrow function with no parameters
+print "=== Test 9: Arrow Function - No Params ===";
+let getMessage = () => "Hello from arrow function!";
+print getMessage();
+
+// Test 10: Nested lists
+print "=== Test 10: Nested Lists ===";
+let matrix = [[1, 2], [3, 4], [5, 6]];
+print matrix;
+print matrix[0];
+print matrix[1][0];
+
+// Test 11: Higher-order function pattern
+print "=== Test 11: Higher-Order Functions ===";
+let applyTwice = (f, x) => f(f(x));
+let addOne = (n) => n + 1;
+print applyTwice(addOne, 5);
+
+print "=== All Tests Complete ===";

@@ -1,0 +1,39 @@
+// Test List Data Structure only
+
+// Test 1: Basic list creation
+print "=== Test 1: Basic List Creation ===";
+let list1 = [1, 2, 3, 4, 5];
+print list1;
+
+// Test 2: List with mixed types
+print "=== Test 2: Mixed Type List ===";
+let list2 = [1, "hello", 3, "world"];
+print list2;
+
+// Test 3: Empty list
+print "=== Test 3: Empty List ===";
+let list3 = [];
+print list3;
+
+// Test 4: List indexing (get)
+print "=== Test 4: List Indexing ===";
+let nums = [10, 20, 30, 40, 50];
+print nums[0];
+print nums[2];
+print nums[4];
+
+// Test 5: List indexing (set)
+print "=== Test 5: List Index Assignment ===";
+let arr = [1, 2, 3];
+print arr;
+arr[1] = 100;
+print arr;
+
+// Test 6: Nested lists
+print "=== Test 6: Nested Lists ===";
+let matrix = [[1, 2], [3, 4], [5, 6]];
+print matrix;
+print matrix[0];
+print matrix[1][0];
+
+print "=== All Tests Complete ===";

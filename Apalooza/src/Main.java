@@ -17,7 +17,11 @@ public class Main {
 
     public static void main(String[] args) {
         try{
-            runFile("/Users/harris/Desktop/apalooza/Apalooza/src/samples/sample1.txt");
+            if (args.length == 1) {
+                runFile(args[0]);
+            } else {
+                runFile("/Users/harris/Desktop/apalooza/Apalooza/src/samples/list_and_arrow_test.txt");
+            }
         }catch(Exception e){
             System.out.println("Error Running File: " + e);
         }
@@ -48,9 +52,9 @@ public class Main {
 
         List<Stmt> statements = parser.parse();
 
-        /*for(Stmt statement : statements){
-            System.out.println(statement);
-        }*/
+        //for(Stmt statement : statements){
+        //    System.out.println(statement);
+        //}
 
         if (hadError) return;
 

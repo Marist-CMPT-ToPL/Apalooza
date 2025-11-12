@@ -34,7 +34,10 @@ class Parser {
       statements.add(statement());
 */
 //> parse-declaration
-            statements.add(declaration());
+            Stmt stmt = declaration();
+            if (stmt != null) {
+                statements.add(stmt);
+            }
 //< parse-declaration
         }
 
@@ -288,8 +291,26 @@ class Parser {
     Expr expr = equality();
 */
 //> Control Flow or-in-assignment
+
+        // Special case: try to parse arrow function parameters at start
+        if (check(TokenType.LEFT_PAREN)) {
+            int start = current;
+            List<Token> arrowParams = tryParseArrowParams();
+            if (arrowParams != null) {
+                // We found arrow parameters, now finish the arrow function
+                return finishArrowFunction(arrowParams);
+            }
+            // Reset if arrow function parsing failed
+            current = start;
+        }
+
         Expr expr = or();
 //< Control Flow or-in-assignment
+
+        // Check for arrow function
+        if (check(TokenType.ARROW_FN)) {
+            return parseArrowFunction(expr);
+        }
 
         if (match(TokenType.EQUAL)) {
             Token equals = previous();
@@ -303,6 +324,11 @@ class Parser {
                 Expr.Get get = (Expr.Get)expr;
                 return new Expr.Set(get.object, get.name, value);
 //< Classes assign-set
+//> assign-index-set
+            } else if (expr instanceof Expr.IndexGet) {
+                Expr.IndexGet get = (Expr.IndexGet)expr;
+                return new Expr.IndexSet(get.object, get.index, value);
+//< assign-index-set
             }
 
             error(equals, "Invalid assignment target."); // [no-throw]
@@ -311,6 +337,136 @@ class Parser {
         return expr;
     }
     //< Statements and State parse-assignment
+//> parse-arrow-function
+    private Expr parseArrowFunction(Expr params) {
+        consume(TokenType.ARROW_FN, "Expect '=>'.");
+
+        List<Token> parameters = new ArrayList<>();
+
+        // Extract parameters from the expression
+        if (params instanceof Expr.Variable) {
+            // Single parameter without parentheses: x => x * 2
+            parameters.add(((Expr.Variable) params).name);
+        } else if (params instanceof Expr.Grouping) {
+            // Parameters in parentheses: (x, y) => x + y or () => expr
+            Expr inner = ((Expr.Grouping) params).expression;
+            if (inner == null) {
+                // Empty parameter list: () => expr
+                parameters = new ArrayList<>();
+            } else {
+                parameters = extractParameters(inner);
+            }
+        } else {
+            throw error(peek(), "Invalid arrow function parameters.");
+        }
+
+        // Check if it's a block or expression body
+        if (match(TokenType.LEFT_BRACE)) {
+            // Block body: (x) => { return x * 2; }
+            List<Stmt> body = block();
+            return new Expr.ArrowFunction(parameters, body, false, null);
+        } else {
+            // Expression body: (x) => x * 2
+            Expr body = assignment();
+            return new Expr.ArrowFunction(parameters, null, true, body);
+        }
+    }
+
+    private List<Token> extractParameters(Expr expr) {
+        List<Token> params = new ArrayList<>();
+
+        if (expr instanceof Expr.Variable) {
+            params.add(((Expr.Variable) expr).name);
+        } else if (expr instanceof Expr.Binary) {
+            Expr.Binary binary = (Expr.Binary) expr;
+            if (binary.operator.type == TokenType.COMMA) {
+                // Recursively extract parameters from comma expression
+                params.addAll(extractParameters(binary.left));
+                params.addAll(extractParameters(binary.right));
+            } else {
+                throw error(peek(), "Invalid parameter in arrow function.");
+            }
+        } else {
+            throw error(peek(), "Invalid parameter type in arrow function.");
+        }
+
+        return params;
+    }
+
+    // Try to parse arrow function parameters: (a, b, c)
+    private List<Token> tryParseArrowParams() {
+        int start = current;
+        List<Token> params = new ArrayList<>();
+
+        try {
+            // We should be at LEFT_PAREN
+            if (!match(TokenType.LEFT_PAREN)) {
+                return null;
+            }
+
+            // Handle empty params ()
+            if (check(TokenType.RIGHT_PAREN)) {
+                advance(); // consume )
+                // Check for =>
+                if (!check(TokenType.ARROW_FN)) {
+                    current = start;
+                    return null;
+                }
+                return params; // Empty list
+            }
+
+            // Try to parse comma-separated identifiers
+            if (!check(TokenType.IDENTIFIER)) {
+                current = start;
+                return null;
+            }
+
+            do {
+                if (!check(TokenType.IDENTIFIER)) {
+                    current = start;
+                    return null;
+                }
+                params.add(advance());
+            } while (match(TokenType.COMMA));
+
+            // Check if followed by ) =>
+            if (!check(TokenType.RIGHT_PAREN)) {
+                current = start;
+                return null;
+            }
+
+            advance(); // consume )
+
+            // Peek ahead to see if there's an arrow
+            if (!check(TokenType.ARROW_FN)) {
+                current = start;
+                return null;
+            }
+
+            return params;
+        } catch (Exception e) {
+            current = start;
+            return null;
+        }
+    }
+
+    // Finish parsing arrow function body
+    private Expr finishArrowFunction(List<Token> params) {
+        // Consume the => token
+        consume(TokenType.ARROW_FN, "Expect '=>'.");
+
+        // Check if it's a block or expression body
+        if (match(TokenType.LEFT_BRACE)) {
+            // Block body: (x) => { return x * 2; }
+            List<Stmt> body = block();
+            return new Expr.ArrowFunction(params, body, false, null);
+        } else {
+            // Expression body: (x) => x * 2
+            Expr body = assignment();
+            return new Expr.ArrowFunction(params, null, true, body);
+        }
+    }
+    //< parse-arrow-function
 //> Control Flow or
     private Expr or() {
         Expr expr = and();
@@ -438,6 +594,12 @@ class Parser {
                         "Expect property name after '.'.");
                 expr = new Expr.Get(expr, name);
 //< Classes parse-property
+//> parse-index-get
+            } else if (match(TokenType.LEFT_SQ_BRACKET)) {
+                Expr index = expression();
+                consume(TokenType.RIGHT_SQ_BRACKET, "Expect ']' after index.");
+                expr = new Expr.IndexGet(expr, index);
+//< parse-index-get
             } else {
                 break;
             }
@@ -455,6 +617,19 @@ class Parser {
         if (match(TokenType.NUMBER, TokenType.STRING)) {
             return new Expr.Literal(previous().literal);
         }
+//> parse-list-literal
+
+        if (match(TokenType.LEFT_SQ_BRACKET)) {
+            List<Expr> elements = new ArrayList<>();
+            if (!check(TokenType.RIGHT_SQ_BRACKET)) {
+                do {
+                    elements.add(expression());
+                } while (match(TokenType.COMMA));
+            }
+            consume(TokenType.RIGHT_SQ_BRACKET, "Expect ']' after list elements.");
+            return new Expr.ListExpr(elements);
+        }
+//< parse-list-literal
 //> Inheritance parse-super
 
         if (match(TokenType.SUPER)) {
@@ -477,6 +652,11 @@ class Parser {
 //< Statements and State parse-identifier
 
         if (match(TokenType.LEFT_PAREN)) {
+            // Check for empty parentheses () for arrow functions
+            if (check(TokenType.RIGHT_PAREN)) {
+                advance(); // consume the ')'
+                return new Expr.Grouping(null); // Empty grouping for () => syntax
+            }
             Expr expr = expression();
             consume(TokenType.RIGHT_PAREN, "Expect ')' after expression.");
             return new Expr.Grouping(expr);

@@ -14,6 +14,10 @@ public abstract class Expr {
         R visitThisExpr(This expr);
         R visitUnaryExpr(Unary expr);
         R visitVariableExpr(Variable expr);
+        R visitListExpr(ListExpr expr);
+        R visitIndexGetExpr(IndexGet expr);
+        R visitIndexSetExpr(IndexSet expr);
+        R visitArrowFunctionExpr(ArrowFunction expr);
     }
 
     static class Assign extends Expr {
@@ -202,6 +206,74 @@ public abstract class Expr {
         final Token name;
     }
 //< expr-variable
+
+    // List literal expression: [1, 2, 3]
+    static class ListExpr extends Expr {
+        ListExpr(List<Expr> elements) {
+            this.elements = elements;
+        }
+
+        @Override
+        <R> R accept(Visitor<R> visitor) {
+            return visitor.visitListExpr(this);
+        }
+
+        final List<Expr> elements;
+    }
+
+    // Index get expression: list[0]
+    static class IndexGet extends Expr {
+        IndexGet(Expr object, Expr index) {
+            this.object = object;
+            this.index = index;
+        }
+
+        @Override
+        <R> R accept(Visitor<R> visitor) {
+            return visitor.visitIndexGetExpr(this);
+        }
+
+        final Expr object;
+        final Expr index;
+    }
+
+    // Index set expression: list[0] = value
+    static class IndexSet extends Expr {
+        IndexSet(Expr object, Expr index, Expr value) {
+            this.object = object;
+            this.index = index;
+            this.value = value;
+        }
+
+        @Override
+        <R> R accept(Visitor<R> visitor) {
+            return visitor.visitIndexSetExpr(this);
+        }
+
+        final Expr object;
+        final Expr index;
+        final Expr value;
+    }
+
+    // Arrow function expression: (a, b) => { return a + b; } or (x) => x * 2
+    static class ArrowFunction extends Expr {
+        ArrowFunction(List<Token> params, List<Stmt> body, boolean isExpression, Expr expressionBody) {
+            this.params = params;
+            this.body = body;
+            this.isExpression = isExpression;
+            this.expressionBody = expressionBody;
+        }
+
+        @Override
+        <R> R accept(Visitor<R> visitor) {
+            return visitor.visitArrowFunctionExpr(this);
+        }
+
+        final List<Token> params;
+        final List<Stmt> body;
+        final boolean isExpression; // true if single expression, false if block
+        final Expr expressionBody; // for single expression arrow functions
+    }
 
     abstract <R> R accept(Visitor<R> visitor);
 }

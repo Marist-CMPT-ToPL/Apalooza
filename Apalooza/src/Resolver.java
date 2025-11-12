@@ -307,6 +307,55 @@ class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
     }
 
     //< Classes resolver-visit-this
+//> visit-list-expr
+    @Override
+    public Void visitListExpr(Expr.ListExpr expr) {
+        for (Expr element : expr.elements) {
+            resolve(element);
+        }
+        return null;
+    }
+    //< visit-list-expr
+//> visit-index-get-expr
+    @Override
+    public Void visitIndexGetExpr(Expr.IndexGet expr) {
+        resolve(expr.object);
+        resolve(expr.index);
+        return null;
+    }
+    //< visit-index-get-expr
+//> visit-index-set-expr
+    @Override
+    public Void visitIndexSetExpr(Expr.IndexSet expr) {
+        resolve(expr.value);
+        resolve(expr.object);
+        resolve(expr.index);
+        return null;
+    }
+    //< visit-index-set-expr
+//> visit-arrow-function-expr
+    @Override
+    public Void visitArrowFunctionExpr(Expr.ArrowFunction expr) {
+        FunctionType enclosingFunction = currentFunction;
+        currentFunction = FunctionType.FUNCTION;
+
+        beginScope();
+        for (Token param : expr.params) {
+            declare(param);
+            define(param);
+        }
+
+        if (expr.isExpression) {
+            resolve(expr.expressionBody);
+        } else {
+            resolve(expr.body);
+        }
+
+        endScope();
+        currentFunction = enclosingFunction;
+        return null;
+    }
+    //< visit-arrow-function-expr
 //> visit-unary-expr
     @Override
     public Void visitUnaryExpr(Expr.Unary expr) {

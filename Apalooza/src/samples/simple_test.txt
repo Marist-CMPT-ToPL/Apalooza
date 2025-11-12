@@ -1,0 +1,12 @@
+// Simple test for lists
+print "Test 1: Basic list";
+let list1 = [1, 2, 3];
+print list1;
+
+print "Test 2: List access";
+print list1[0];
+print list1[1];
+
+print "Test 3: Arrow function";
+let double = (x) => x * 2;
+print double(5);
